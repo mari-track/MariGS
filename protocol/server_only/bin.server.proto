@@ -14,7 +14,7 @@ message PlayerBasicCompBin{
   uint32 exp = 2; // 经验
   string nickname = 3; // 昵称
   uint32 total_game_time = 4; // 总游戏时间
-  uint64 trans_no_count = 5; // ？
+  uint32 avatar_id = 5; // 主角
   bool is_weather_locked = 6; // 是否锁定天气
   bool is_game_time_locked = 7; // 是否锁定游戏内时间
   float persist_stamina_limit = 8; // 体力限制
@@ -25,7 +25,7 @@ message PlayerBasicCompBin{
   fixed32 last_login_time = 13; // 最后登录时间
   fixed32 register_time = 14; // 注册时间
   uint32 total_login_days = 15; // 总登录天数
-  uint32 update_login_days_time = 16; // 更新登录天数时间 ？
+  string signature = 16; // 签名
   repeated uint32 reward_taken_level_list = 17; // 等级奖励列表
   uint32 language_type = 18; // 语言
   string client_app_version = 19; // 客户端版本
@@ -40,11 +40,13 @@ message PlayerBasicCompBin{
   bool is_rebate_mail_sent = 29; // 是否发送回扣邮件
   bool is_rebate_mail_received = 30; // 是收到的回扣邮件
   map<uint32, uint32> prop_map = 31; // 玩家属性
+  uint32 world_level = 32; // 世界等级
+  uint32 NameCardId = 33; // 头像
 }
 
 message PlayerAvatarCompBin {
   map<uint32, AvatarBin> avatar_list = 1; // 角色列表
-  uint64 cur_avatar_guid = 2; // 当前角色唯一id
+  uint64 cur_avatar_guid = 2; // 主角唯一id
   VectorBin pb_only_cur_pos = 3; // 当前数据库坐标
   VectorBin pb_only_cur_rot = 4; // 当前数据库朝向
   map<uint32, AvatarTeamBin> team_map = 5; // 队伍
@@ -67,7 +69,7 @@ message PlayerAvatarCompBin {
 }
 
 message AvatarBin {
-  uint32 avatar_type = 1; ///类型
+  uint32 avatar_type = 1; // 类型
   uint32 avatar_id = 2; // id
   uint64 guid = 3; // 唯一id
   uint32 level = 4; // 等级
@@ -77,20 +79,24 @@ message AvatarBin {
   uint32 promote_level = 8; // 突破等级
   uint32 skill_depot_id = 9; // 技能库id
   map<uint32, AvatarSkillBin> skill_map = 10; // 技能
-  map<uint32, AvatarBuffBin> buff_map = 11;
-  map<uint32, AvatarSkillDepotBin> depot_map = 12;
+  //map<uint32, AvatarBuffBin> buff_map = 11;
+  //map<uint32, AvatarSkillDepotBin> depot_map = 12;
   uint64 weapon_guid = 13; // 装备的武器唯一id
   float satiation_val = 14; // 饱食度
   float satiation_penalty_time = 15; // 饱食度惩罚时间
   uint32 flycloak_id = 16; // 风之翼id
-  map<uint32,float>fight_prop_map = 17;
+  map<uint32, float>fight_prop_map = 17;
   uint32 born_time = 18; // 获取时间
+  uint32 exp = 19; // 经验
+  uint32 fetter_level = 20; // 好感度
+  uint32 fetter_exp = 21; // 好感度经验
+  repeated uint32 talent_id_list = 22; // 已解锁命座
 }
 
 message AvatarTeamBin {
-  repeated uint64 avatar_guid_list = 1;
-  string team_name = 2;
-  uint64 last_cur_avatar_guid = 3;
+  repeated uint64 avatar_guid_list = 1; // 队伍角色
+  string team_name = 2; // 队伍名称
+  uint64 last_cur_avatar_guid = 3; // 当前上场角色
 }
 
 message AvatarBuffBin {

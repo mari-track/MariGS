@@ -32,12 +32,7 @@ func NewPlayer(bin []byte) *Player {
 }
 
 func NewPlayerPb() *playerPb.PlayerDataBin {
-	PlayerPb := &playerPb.PlayerDataBin{
-		BasicBin:  new(playerPb.PlayerBasicCompBin),
-		AvatarBin: new(playerPb.PlayerAvatarCompBin),
-
-		ItemBin: new(playerPb.PlayerItemCompBin),
-	}
+	PlayerPb := new(playerPb.PlayerDataBin)
 	return PlayerPb
 }
 

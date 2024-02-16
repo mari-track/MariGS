@@ -14,9 +14,11 @@ type RouteManager struct {
 
 func (r *RouteManager) initRoute(g *Game) {
 	r.handlerFuncRouteMap = map[uint16]HandlerFunc{
-		cmd.PingReq:              g.PingReq,
-		cmd.PlayerLoginReq:       g.PlayerLoginReq,       // 第二个登录包
-		cmd.SetPlayerBornDataReq: g.SetPlayerBornDataReq, // 选择主角
+		cmd.PingReq:                  g.PingReq,
+		cmd.PlayerLoginReq:           g.PlayerLoginReq,           // 第二个登录包
+		cmd.SetPlayerBornDataReq:     g.SetPlayerBornDataReq,     // 选择主角
+		cmd.GetPlayerSocialDetailReq: g.GetPlayerSocialDetailReq, // 获取账户信息
+		cmd.SetOpenStateReq:          g.SetOpenStateReq,          // 设置开放状态
 	}
 }
 

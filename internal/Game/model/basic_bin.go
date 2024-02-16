@@ -2,6 +2,7 @@ package model
 
 import (
 	"github.com/mari-track/MariGS/pkg/constant"
+	"github.com/mari-track/MariGS/pkg/gdconf"
 	playerPb "github.com/mari-track/MariGS/protocol/server_only"
 )
 
@@ -11,7 +12,6 @@ func NewPlayerBasicCompBin() *playerPb.PlayerBasicCompBin {
 		Exp:                  0,
 		Nickname:             "",
 		TotalGameTime:        0,
-		TransNoCount:         0,
 		IsWeatherLocked:      false,
 		IsGameTimeLocked:     false,
 		PersistStaminaLimit:  0,
@@ -22,7 +22,6 @@ func NewPlayerBasicCompBin() *playerPb.PlayerBasicCompBin {
 		LastLoginTime:        0,
 		RegisterTime:         0,
 		TotalLoginDays:       0,
-		UpdateLoginDaysTime:  0,
 		RewardTakenLevelList: make([]uint32, 0),
 		LanguageType:         0,
 		ClientAppVersion:     "",
@@ -37,6 +36,10 @@ func NewPlayerBasicCompBin() *playerPb.PlayerBasicCompBin {
 		IsRebateMailSent:     false,
 		IsRebateMailReceived: false,
 		PropMap:              make(map[uint32]uint32),
+		AvatarId:             0,
+		Signature:            "",
+		WorldLevel:           0,
+		NameCardId:           0,
 	}
 
 	bin.PropMap[constant.PLAYER_PROP_PLAYER_WORLD_LEVEL] = 0
@@ -70,6 +73,10 @@ func NewPlayerBasicCompBin() *playerPb.PlayerBasicCompBin {
 	bin.PropMap[constant.PLAYER_PROP_IS_GAME_TIME_LOCKED] = 1
 	bin.PropMap[constant.PLAYER_PROP_IS_TRANSFERABLE] = 1
 	bin.PropMap[constant.PLAYER_PROP_MAX_STAMINA] = 10000
+
+	for _, openStateDataConfig := range gdconf.GetDefaultOpenStateDataMap() {
+		bin.OpenStateMap[uint32(openStateDataConfig.OpenStateId)] = 1
+	}
 
 	return bin
 }

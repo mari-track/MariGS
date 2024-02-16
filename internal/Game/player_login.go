@@ -134,11 +134,41 @@ func (g *Game) SetPlayerBornDataReq(payloadMsg pb.Message) {
 	g.Player.UptoDateNickname(req.NickName)
 	// 添加角色
 	g.AddAvatar(req.AvatarId)
+	// 将角色添加到队伍1
+	avatarDb := g.Player.GetPbAvatarById(req.AvatarId)
+	team1 := g.Player.GetPbTeamById(1)
+	team1.LastCurAvatarGuid = avatarDb.Guid
+	team1.AvatarGuidList = append(team1.AvatarGuidList, avatarDb.Guid)
+	avatarBin := g.Player.GetPbPlayerAvatarCompBin()
+	// 设置当前角色状态
+	avatarBin.ChooseAvatarGuid = avatarDb.Guid
+	avatarBin.CurTeamId = 1
+	// 添加基础风之翼
+	avatarBin.OwnedFlycloakList = append(avatarBin.OwnedFlycloakList, 140001)
+	// 更新basic bin
+	basicBin := g.Player.GetPbPlayerBasicCompBin()
+	basicBin.AvatarId = req.AvatarId
+	basicBin.NameCardId = 210001
 	// 发送登录通知包
 	g.LoginNotify()
+	g.seed(cmd.SetPlayerBornDataRsp, nil)
 }
 
 // 登录通知包
 func (g *Game) LoginNotify() {
 	g.PlayerDataNotify()
+	g.PlayerLevelRewardUpdateNotify()
+	g.OpenStateUpdateNotify()
+	g.AllSeenMonsterNotify()
+	g.StoreWeightLimitNotify()
+	g.PlayerStoreNotify()
+	g.ItemCdGroupTimeNotify()
+	g.AvatarDataNotify()
+	/*
+		AvatarExpeditionDataNotify
+		AvatarSatiationDataNotify
+	*/
+	g.FinishedParentQuestNotify()
+	g.QuestListNotify()
+	g.PlayerEnterSceneNotify()
 }

@@ -25,7 +25,10 @@ type GameDataConfig struct {
 	luaPrefix  string
 	txtPrefix  string
 	// 配置表数据
-	AvatarDataMap map[uint32]*AvatarData // 角色
+	AvatarDataMap         map[uint32]*AvatarData   // 角色
+	FetterDataMap         map[int32]*FetterData    // 角色资料解锁
+	FetterDataAvatarIdMap map[int32][]int32        // 角色资料解锁角色id索引
+	OpenStateDataMap      map[int32]*OpenStateData // 开放状态
 }
 
 func InitGameDataConfig() {
@@ -72,6 +75,12 @@ func (g *GameDataConfig) loadAll() {
 	g.txtPrefix += "/"
 
 	g.load()
+}
+
+func (g *GameDataConfig) load() {
+	g.loadAvatarData()    // 角色
+	g.loadFetterData()    // 角色资料解锁
+	g.loadOpenStateData() // 开放状态
 }
 
 func splitStringArray(str string) []string {
@@ -128,8 +137,4 @@ func readTable[T any](tablePath string, table *[]*T) {
 		}
 		*table = append(*table, t)
 	}
-}
-
-func (g *GameDataConfig) load() {
-	g.loadAvatarData() // 角色
 }

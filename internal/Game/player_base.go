@@ -6,6 +6,7 @@ import (
 	"github.com/mari-track/MariGS/pkg/logger"
 	"github.com/mari-track/MariGS/protocol/cmd"
 	"github.com/mari-track/MariGS/protocol/proto"
+	pb "google.golang.org/protobuf/proto"
 )
 
 /*************************************通知包******************************************/
@@ -24,6 +25,36 @@ func (g *Game) PlayerDataNotify() {
 		notify.PropMap[k] = g.PacketPropValue(k, v)
 	}
 	g.seed(cmd.PlayerDataNotify, notify)
+}
+
+func (g *Game) PlayerLevelRewardUpdateNotify() {
+	notify := &proto.PlayerLevelRewardUpdateNotify{
+		LevelList: make([]uint32, 0),
+	}
+	g.seed(cmd.PlayerLevelRewardUpdateNotify, notify)
+}
+
+func (g *Game) OpenStateUpdateNotify() {
+	db := g.Player.GetPbPlayerBasicCompBin()
+	notify := &proto.OpenStateUpdateNotify{
+		OpenStateMap: db.OpenStateMap,
+	}
+	g.seed(cmd.OpenStateUpdateNotify, notify)
+}
+
+func (g *Game) OpenStateChangeNotify(stateMap map[uint32]uint32) {
+	notify := &proto.OpenStateChangeNotify{OpenStateMap: make(map[uint32]uint32)}
+	for key, value := range stateMap {
+		notify.OpenStateMap[key] = value
+	}
+	g.seed(cmd.OpenStateChangeNotify, notify)
+}
+
+func (g *Game) FinishedParentQuestNotify() {
+	notify := &proto.FinishedParentQuestNotify{
+		ParentQuestList: make([]*proto.ParentQuest, 0),
+	}
+	g.seed(cmd.FinishedParentQuestNotify, notify)
 }
 
 /*************************************封装******************************************/
@@ -79,4 +110,46 @@ func (g *Game) PacketPropValue(key uint32, value any) *proto.PropValue {
 		return nil
 	}
 	return propValue
+}
+
+/*************************************数据包处理******************************************/
+
+func (g *Game) GetPlayerSocialDetailReq(payloadMsg pb.Message) {
+	db := g.Player.GetPbPlayerBasicCompBin()
+	req := payloadMsg.(*proto.GetPlayerSocialDetailReq)
+	if req.Uid != g.Uid {
+		return
+	}
+	rsp := &proto.GetPlayerSocialDetailRsp{
+		Retcode: 0,
+		DetailData: &proto.SocialDetail{
+			Uid:               g.Uid,
+			Nickname:          db.Nickname,
+			Level:             db.Level,
+			AvatarId:          db.AvatarId,
+			Signature:         db.Signature,
+			Birthday:          nil,
+			WorldLevel:        db.WorldLevel,
+			ReservedList:      nil,
+			OnlineState:       proto.FriendOnlineState_FRIEND_ONLINE,
+			Param:             0,
+			IsFriend:          true,
+			IsMpModeAvailable: true,
+			OnlineId:          "",
+			NameCardId:        db.NameCardId,
+			IsInBlacklist:     false,
+		},
+	}
+	g.seed(cmd.GetPlayerSocialDetailRsp, rsp)
+}
+
+func (g *Game) SetOpenStateReq(payloadMsg pb.Message) {
+	req := payloadMsg.(*proto.SetOpenStateReq)
+	rsp := &proto.SetOpenStateRsp{
+		Retcode: 0,
+		Key:     req.Key,
+		Value:   req.Value,
+	}
+	g.OpenStateChangeNotify(map[uint32]uint32{req.Key: req.Value})
+	g.seed(cmd.SetOpenStateRsp, rsp)
 }
