@@ -1,6 +1,8 @@
 package Game
 
 import (
+	"time"
+
 	"github.com/mari-track/MariGS/internal/Game/model"
 	"github.com/mari-track/MariGS/pkg/kcp"
 	"github.com/mari-track/MariGS/pkg/logger"
@@ -35,4 +37,9 @@ func (g *Game) PingReq(playerMsg pb.Message) {
 		ClientTime: req.ClientTime,
 	}
 	g.seed(cmd.PingRsp, rsp)
+}
+
+func GetServerTime() int64 {
+	serverTime := time.Now().UnixNano() / 1e6
+	return serverTime
 }

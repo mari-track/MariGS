@@ -19,7 +19,7 @@ type AvatarData struct {
 	CriticalHurt       float32  `csv:"暴击伤害,omitempty"`
 	QualityType        int32    `csv:"角色品质,omitempty"`
 	ConfigJson         string   `csv:"战斗config,omitempty"`
-	InitialWeapon      int32    `csv:"初始武器,omitempty"`
+	InitialWeapon      uint32   `csv:"初始武器,omitempty"`
 	WeaponType         int32    `csv:"武器种类,omitempty"`
 	SkillDepotId       int32    `csv:"技能库ID,omitempty"`
 	SkillDepotIdList   IntArray `csv:"候选技能库ID,omitempty"`
@@ -87,14 +87,14 @@ func GetAvatarDataMap() map[uint32]*AvatarData {
 
 // TODO 成长属性要读表
 
-func (a *AvatarData) GetBaseHpByLevel(level uint8) float32 {
+func (a *AvatarData) GetBaseHpByLevel(level uint32) float32 {
 	return a.HpBase * float32(level)
 }
 
-func (a *AvatarData) GetBaseAttackByLevel(level uint8) float32 {
+func (a *AvatarData) GetBaseAttackByLevel(level uint32) float32 {
 	return a.AttackBase * float32(level)
 }
 
-func (a *AvatarData) GetBaseDefenseByLevel(level uint8) float32 {
+func (a *AvatarData) GetBaseDefenseByLevel(level uint32) float32 {
 	return a.DefenseBase * float32(level)
 }

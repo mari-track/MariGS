@@ -5,6 +5,8 @@ option go_package = "./;proto";
 message PlayerDataBin {
   PlayerBasicCompBin basic_bin = 1; // 玩家基础信息
   PlayerAvatarCompBin avatar_bin = 2; // 玩家角色信息
+
+  PlayerItemCompBin item_bin = 5; // 背包信息
 }
 
 message PlayerBasicCompBin{
@@ -18,7 +20,7 @@ message PlayerBasicCompBin{
   float persist_stamina_limit = 8; // 体力限制
   float cur_persist_stamina = 9; // 主体力
   float cur_temporary_stamina = 10; // 临时体力
-  map<uint32,uint32> open_state_map = 11; // 地图开放状态
+  map<uint32, uint32> open_state_map = 11; // 地图开放状态
   uint64 player_time_ms = 12; // 玩家时间
   fixed32 last_login_time = 13; // 最后登录时间
   fixed32 register_time = 14; // 注册时间
@@ -37,15 +39,15 @@ message PlayerBasicCompBin{
   uint32 guid_seq_id = 28; // 全局唯一id
   bool is_rebate_mail_sent = 29; // 是否发送回扣邮件
   bool is_rebate_mail_received = 30; // 是收到的回扣邮件
-  string register_cps = 31; // 注册广告？
+  map<uint32, uint32> prop_map = 31; // 玩家属性
 }
 
 message PlayerAvatarCompBin {
-  repeated AvatarBin avatar_list = 1; // 角色列表
+  map<uint32, AvatarBin> avatar_list = 1; // 角色列表
   uint64 cur_avatar_guid = 2; // 当前角色唯一id
   VectorBin pb_only_cur_pos = 3; // 当前数据库坐标
   VectorBin pb_only_cur_rot = 4; // 当前数据库朝向
-  map<uint32,AvatarTeamBin> team_map = 5; // 队伍
+  map<uint32, AvatarTeamBin> team_map = 5; // 队伍
   uint32 cur_team_id = 6; // 当前队伍id
   uint64 last_change_avatar_time = 7; // 最后更改角色时间
   bool is_spring_auto_use = 8; // 是否自动使用？
@@ -58,37 +60,31 @@ message PlayerAvatarCompBin {
   uint64 choose_avatar_guid = 15; // 选择角色全局id？
   uint32 die_type = 16; // 类型？
   repeated uint64 temp_avatar_guid_list = 17; // 队伍全局id列表
-  map<uint32,AvatarBuffBin> avatar_team_buff_map = 18; // 角色队伍buff
+  map<uint32, AvatarBuffBin> avatar_team_buff_map = 18; // 角色队伍buff
   uint32 last_server_buff_uid = 19; // 最后服务器buff uid？
   uint32 total_expedition_num = 20; // 总冒险数量？
   repeated uint32 owned_flycloak_list = 21; // 拥有的风之翼列表
 }
 
 message AvatarBin {
-  oneof detail {
-    FormalAvatarBin formal_avatar = 101;
-    TrialAvatarBin trial_avatar = 102;
-    MirrorAvatarBin mirror_avatar = 103;
-  }
-
-  uint32 avatar_type = 1;
-  uint32 avatar_id = 2;
-  uint64 guid = 3;
-  uint32 level = 4;
-  uint32 life_state = 5;
-  float cur_hp = 6;
-  float cur_elem_energy = 7;
-  uint32 promote_level = 8;
-  uint32 skill_depot_id = 9;
-  map<uint32,AvatarSkillBin> skill_map = 10;
-  map<uint32,AvatarBuffBin> buff_map = 11;
-  map<uint32,AvatarSkillDepotBin> depot_map = 12;
-  repeated ItemBin equip_list = 13;
-  float satiation_val = 14;
-  float satiation_penalty_time = 15;
-  uint32 flycloak_id = 16;
-  repeated AvatarEquipAffixBin avatar_equip_affix_list = 17;
-  uint32 born_time = 18;
+  uint32 avatar_type = 1; ///类型
+  uint32 avatar_id = 2; // id
+  uint64 guid = 3; // 唯一id
+  uint32 level = 4; // 等级
+  uint32 life_state = 5; // 状态
+  float cur_hp = 6; // 当前血量
+  float cur_elem_energy = 7; // 当前元素能量
+  uint32 promote_level = 8; // 突破等级
+  uint32 skill_depot_id = 9; // 技能库id
+  map<uint32, AvatarSkillBin> skill_map = 10; // 技能
+  map<uint32, AvatarBuffBin> buff_map = 11;
+  map<uint32, AvatarSkillDepotBin> depot_map = 12;
+  uint64 weapon_guid = 13; // 装备的武器唯一id
+  float satiation_val = 14; // 饱食度
+  float satiation_penalty_time = 15; // 饱食度惩罚时间
+  uint32 flycloak_id = 16; // 风之翼id
+  map<uint32,float>fight_prop_map = 17;
+  uint32 born_time = 18; // 获取时间
 }
 
 message AvatarTeamBin {
@@ -103,48 +99,6 @@ message AvatarBuffBin {
   uint32 buff_type = 3;
 }
 
-message FormalAvatarBin {
-  uint32 exp = 1;
-  repeated uint64 equip_guid_list = 2;
-  AvatarFetterBin fetter = 3;
-  AvatarExpeditionBin expedition_data = 4;
-  uint32 avatar_repeat_count = 5;
-  bool is_focus = 6;
-}
-
-message AvatarFetterBin {
-  uint32 level = 3;
-  uint32 exp = 4;
-  repeated uint32 rewarded_fetter_level_list = 6;
-  bool is_login_on_birthday = 7;
-}
-
-message AvatarExpeditionBin {
-  uint32 state = 1;
-  uint32 exp_id = 2;
-  uint32 hour_time = 3;
-  fixed32 start_time = 4;
-  uint64 transaction = 5;
-  float shorten_ratio = 6;
-}
-
-message TrialAvatarBin {
-  uint32 trial_avatar_id = 1;
-  TrialAvatarGrantRecordBin grant_record_bin = 2;
-}
-
-message TrialAvatarGrantRecordBin {
-  enum GrantReason {
-    INVALID = 0;
-    GRANT_BY_QUEST = 1;
-  }
-
-  uint32 grant_reason = 1;
-  uint32 from_parent_quest_id = 2;
-}
-
-message MirrorAvatarBin {}
-
 message AvatarSkillBin {
   uint32 pass_cd_time = 1;
   repeated uint32 full_cd_time_list = 2;
@@ -154,34 +108,31 @@ message AvatarSkillDepotBin {
   repeated uint32 talent_id_list = 1;
   uint32 core_proud_skill_level = 2;
   repeated uint32 inherent_proud_skill_list = 3;
-  map<uint32,uint32> skill_level_map = 4;
+  map<uint32, uint32> skill_level_map = 4;
 }
 
-message ItemBin {
-  oneof detail {
-    MaterialBin material = 101;
-    EquipBin equip = 102;
-  }
-
-  uint32 item_type = 1;
-  uint32 item_id = 2;
-  fixed64 guid = 3;
+message VectorBin {
+  float x = 1;
+  float y = 2;
+  float z = 3;
 }
 
-message MaterialBin {
-  uint32 count = 1;
-  MaterialDeleteBin delete_bin = 2;
+message PlayerItemCompBin {
+  map<uint32, int64> item_list = 1; // 物品
+  uint32 hcoin = 2; // 米币
+  uint32 scoin = 3; // 原石
+  uint32 mcoin = 4;
+  uint32 legendary_key = 5; // 传奇钥匙
+  AutoRecoverItemBin resin_record = 7; // 树脂
+  map<uint64, ReliquaryBin>  reliquary_list = 8; // 圣遗物列表
+  map<uint64, WeaponBin> weapon_list = 9; // 武器列表
 }
 
-message MaterialDeleteBin {
-  map<uint32,uint32> delete_time_num_map = 1;
-}
-
-message EquipBin {
-  oneof detail {
-    ReliquaryBin reliquary = 101;
-    WeaponBin weapon = 102;
-  }
+message AutoRecoverItemBin {
+  uint32 value = 1;
+  uint32 bought_num = 3; // 数量
+  fixed32 last_bought_time = 4; // 最后刷新时间
+  fixed32 next_refresh_time = 5; // 下一个刷新时间
 }
 
 message ReliquaryBin {
@@ -192,22 +143,15 @@ message ReliquaryBin {
 }
 
 message WeaponBin {
-  uint32 level = 1;
-  uint32 exp = 2;
-  uint32 promote_level = 3;
-  map<uint32,uint32> affix_map = 4;
-}
-
-message AvatarEquipAffixBin {
-  uint32 id = 1;
-  uint32 cd = 2;
-  uint32 pass_cd_time = 3;
-}
-
-message VectorBin {
-  float x = 1;
-  float y = 2;
-  float z = 3;
+  uint32 level = 1; // 等级
+  uint32 exp = 2; // 经验
+  uint32 promote_level = 3; // 突破等级
+  map<uint32, uint32> affix_map = 4; // 词条？
+  uint64 guid = 5; // 唯一id
+  bool is_lock = 6; // 是否锁定
+  uint32 refinement = 7; // 精炼等级
+  uint32 avatar_id = 8; // 装备角色
+  uint32 weapon_id = 9; // 武器id
 }
 
 message PlayerData {

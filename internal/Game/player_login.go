@@ -112,6 +112,9 @@ func (g *Game) PlayerLoginReq(payloadMsg pb.Message) {
 
 	if !g.Player.GetPbPlayerBasicCompBin().IsProficientPlayer {
 		g.seed(cmd.DoSetPlayerBornDataNotify, nil)
+	} else {
+		// 发送登录通知包
+		g.LoginNotify()
 	}
 
 	rsp := &proto.PlayerLoginRsp{
@@ -127,17 +130,15 @@ func (g *Game) SetPlayerBornDataReq(payloadMsg pb.Message) {
 	if req.NickName == "" || (req.AvatarId != 10000007 && req.AvatarId != 10000005) {
 		return
 	}
-
 	// 更新昵称
 	g.Player.UptoDateNickname(req.NickName)
 	// 添加角色
-	g.Player.AddAvatar(req.AvatarId)
+	g.AddAvatar(req.AvatarId)
+	// 发送登录通知包
+	g.LoginNotify()
 }
 
 // 登录通知包
 func (g *Game) LoginNotify() {
-	/*
-		PlayerPropNotify
-		ResinChangeNotify
-	*/
+	g.PlayerDataNotify()
 }
