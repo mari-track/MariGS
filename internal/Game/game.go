@@ -21,7 +21,13 @@ type Game struct {
 	// 玩家数据
 	Player *model.Player
 	// 密钥
-	XorKey []byte
+	XorKey                []byte
+	GameObjectGuidCounter uint64
+}
+
+func (g *Game) GetNextGameObjectGuid() uint64 {
+	g.GameObjectGuidCounter++
+	return uint64(g.Uid)<<32 + g.GameObjectGuidCounter
 }
 
 func (g *Game) seed(cmdId uint16, playerMsg pb.Message) {

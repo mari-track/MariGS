@@ -5,16 +5,7 @@ import (
 )
 
 func NewPlayerItemCompBin() *playerPb.PlayerItemCompBin {
-	bin := &playerPb.PlayerItemCompBin{
-		ItemList:      make(map[uint32]int64),
-		Hcoin:         0,
-		Scoin:         0,
-		Mcoin:         0,
-		LegendaryKey:  0,
-		ResinRecord:   nil,
-		ReliquaryList: make(map[uint64]*playerPb.ReliquaryBin),
-		WeaponList:    make(map[uint64]*playerPb.WeaponBin),
-	}
+	bin := new(playerPb.PlayerItemCompBin)
 	return bin
 }
 

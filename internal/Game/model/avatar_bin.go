@@ -21,7 +21,6 @@ func (p *Player) GetPbAvatarList() map[uint32]*playerPb.AvatarBin {
 	if avatarBin.AvatarList == nil {
 		avatarBin.AvatarList = make(map[uint32]*playerPb.AvatarBin)
 	}
-
 	return avatarBin.AvatarList
 }
 
@@ -115,9 +114,9 @@ func (p *Player) GetPbTeamList() map[uint32]*playerPb.AvatarTeamBin {
 	if db.TeamMap == nil {
 		db.TeamMap = make(map[uint32]*playerPb.AvatarTeamBin)
 		teamBin := &playerPb.AvatarTeamBin{
-			AvatarGuidList:    make([]uint64, 0),
-			TeamName:          "",
-			LastCurAvatarGuid: 0,
+			AvatarGuidList:  make([]uint32, 0),
+			TeamName:        "",
+			LastCurAvatarId: 0,
 		}
 		db.TeamMap[1] = teamBin
 		db.TeamMap[2] = teamBin
@@ -131,10 +130,17 @@ func (p *Player) GetPbTeamById(teamId uint32) *playerPb.AvatarTeamBin {
 	db := p.GetPbTeamList()
 	if db[teamId] == nil {
 		db[teamId] = &playerPb.AvatarTeamBin{
-			AvatarGuidList:    make([]uint64, 0),
-			TeamName:          "",
-			LastCurAvatarGuid: 0,
+			AvatarGuidList:  make([]uint32, 0),
+			TeamName:        "",
+			LastCurAvatarId: 0,
 		}
 	}
 	return db[teamId]
+}
+
+func (p *Player) GetPbCurTeam() *playerPb.AvatarTeamBin {
+	db := p.GetPbPlayerAvatarCompBin()
+	curTeam := p.GetPbTeamById(db.CurTeamId)
+
+	return curTeam
 }

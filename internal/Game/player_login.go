@@ -137,8 +137,8 @@ func (g *Game) SetPlayerBornDataReq(payloadMsg pb.Message) {
 	// 将角色添加到队伍1
 	avatarDb := g.Player.GetPbAvatarById(req.AvatarId)
 	team1 := g.Player.GetPbTeamById(1)
-	team1.LastCurAvatarGuid = avatarDb.Guid
-	team1.AvatarGuidList = append(team1.AvatarGuidList, avatarDb.Guid)
+	team1.LastCurAvatarId = req.AvatarId
+	team1.AvatarGuidList = append(team1.AvatarGuidList, req.AvatarId)
 	avatarBin := g.Player.GetPbPlayerAvatarCompBin()
 	// 设置当前角色状态
 	avatarBin.ChooseAvatarGuid = avatarDb.Guid

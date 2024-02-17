@@ -7,6 +7,8 @@ message PlayerDataBin {
   PlayerAvatarCompBin avatar_bin = 2; // 玩家角色信息
 
   PlayerItemCompBin item_bin = 5; // 背包信息
+
+  PlayerSceneCompBin scene_bin = 7; // 场景
 }
 
 message PlayerBasicCompBin{
@@ -47,24 +49,22 @@ message PlayerBasicCompBin{
 message PlayerAvatarCompBin {
   map<uint32, AvatarBin> avatar_list = 1; // 角色列表
   uint64 cur_avatar_guid = 2; // 主角唯一id
-  VectorBin pb_only_cur_pos = 3; // 当前数据库坐标
-  VectorBin pb_only_cur_rot = 4; // 当前数据库朝向
   map<uint32, AvatarTeamBin> team_map = 5; // 队伍
   uint32 cur_team_id = 6; // 当前队伍id
-  uint64 last_change_avatar_time = 7; // 最后更改角色时间
-  bool is_spring_auto_use = 8; // 是否自动使用？
-  uint32 spring_auto_use_percent = 9; // 自动使用百分比？
-  fixed32 last_backgroud_avatar_recover_time = 10; // 最后角色背景重置时间？
-  uint32 cur_spring_volume = 11; // 当前****？
+  //uint64 last_change_avatar_time = 7; // 最后更改角色时间
+  //bool is_spring_auto_use = 8; // 是否自动使用？
+  //uint32 spring_auto_use_percent = 9; // 自动使用百分比？
+  //fixed32 last_backgroud_avatar_recover_time = 10; // 最后角色背景重置时间？
+  //uint32 cur_spring_volume = 11; // 当前****？
   bool is_flyable = 12; // 是否有风之翼
-  bool is_transferable = 13; // 是否可以转移？
-  uint32 last_avatar_guid = 14; // 最后一个角色全局id？
+  //bool is_transferable = 13; // 是否可以转移？
+  //uint32 last_avatar_guid = 14; // 最后一个角色全局id？
   uint64 choose_avatar_guid = 15; // 选择角色全局id？
   uint32 die_type = 16; // 类型？
-  repeated uint64 temp_avatar_guid_list = 17; // 队伍全局id列表
-  map<uint32, AvatarBuffBin> avatar_team_buff_map = 18; // 角色队伍buff
-  uint32 last_server_buff_uid = 19; // 最后服务器buff uid？
-  uint32 total_expedition_num = 20; // 总冒险数量？
+  //repeated uint64 temp_avatar_guid_list = 17; // 队伍全局id列表
+  //map<uint32, AvatarBuffBin> avatar_team_buff_map = 18; // 角色队伍buff
+  //uint32 last_server_buff_uid = 19; // 最后服务器buff uid？
+  //uint32 total_expedition_num = 20; // 总冒险数量？
   repeated uint32 owned_flycloak_list = 21; // 拥有的风之翼列表
 }
 
@@ -94,9 +94,9 @@ message AvatarBin {
 }
 
 message AvatarTeamBin {
-  repeated uint64 avatar_guid_list = 1; // 队伍角色
+  repeated uint32 avatar_guid_list = 1; // 队伍角色
   string team_name = 2; // 队伍名称
-  uint64 last_cur_avatar_guid = 3; // 当前上场角色
+  uint32 last_cur_avatar_id = 3; // 当前上场角色
 }
 
 message AvatarBuffBin {
@@ -158,6 +158,43 @@ message WeaponBin {
   uint32 refinement = 7; // 精炼等级
   uint32 avatar_id = 8; // 装备角色
   uint32 weapon_id = 9; // 武器id
+}
+
+message PlayerSceneCompBin {
+  //WorldBin world = 1;
+  uint32 cur_scene_owner_uid = 2; // 当前世界主人uid
+  uint32 my_prev_scene_id = 3; // 我的上一个场景id
+  VectorBin my_prev_pos = 4; // 我的上一个场景坐标
+  VectorBin my_prev_rot = 5; // 我的上一个场景朝向
+  uint32 my_cur_scene_id = 6; // 我的当前世界id
+  repeated uint32 monster_seen_list = 7; // 怪物列表
+  repeated MapMarkPointBin mark_point_list = 8; // 标记点列表
+  //map<uint32,SceneProductBin> world_product_map = 9; // 大世界产物地图
+  uint32 trivial_entity_drop_num = 10;
+  fixed32 trivial_entity_drop_time = 11;
+  //map<uint32,SceneBossChestBin> scene_boss_chest_map = 12; // 场景boss
+  //map<uint32,SubfieldDropBin> subfield_drop_map = 13;
+  fixed32 subfield_drop_time = 14;
+  uint32 my_cur_area_id = 15; // 当前区域id
+  //map<uint32,DungeonProductBin> dungeon_product_map = 16; // 副本产物
+  map<uint32,uint32> chest_open_num_map = 17; // 宝箱开启情况
+  map<uint32,uint32> gadget_interact_num_map = 18; // gadget 交互情况
+  uint32 total_boss_chest_take_num = 19; // 全部大宝箱开启情况？
+  map<string,uint32> daily_gadget_drop_category_count_map = 20;
+  uint32 last_refresh_daily_gadget_drop_category_count_map_time = 21; // 每日小道具刷新？
+  //repeated MonsterBeKilledNumBin monster_killed_num_list = 22;
+  VectorBin my_cur_pos = 23; // 当前数据库坐标
+  VectorBin my_cur_rot = 24; // 当前数据库朝向
+}
+
+message MapMarkPointBin {
+  uint32 scene_id = 1;
+  string name = 2;
+  VectorBin pos = 3;
+  uint32 point_type = 4;
+  uint32 monster_id = 5;
+  uint32 from_type = 6;
+  uint32 quest_id = 7;
 }
 
 message PlayerData {

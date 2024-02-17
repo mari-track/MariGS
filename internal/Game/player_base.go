@@ -11,6 +11,13 @@ import (
 
 /*************************************通知包******************************************/
 
+func (g *Game) ServerTimeNotify() {
+	notify := &proto.ServerTimeNotify{
+		ServerTime: uint64(GetServerTime()),
+	}
+
+	g.seed(cmd.ServerTimeNotify, notify)
+}
 func (g *Game) PlayerDataNotify() {
 	db := g.Player.GetPbPlayerBasicCompBin()
 	notify := &proto.PlayerDataNotify{
@@ -55,6 +62,36 @@ func (g *Game) FinishedParentQuestNotify() {
 		ParentQuestList: make([]*proto.ParentQuest, 0),
 	}
 	g.seed(cmd.FinishedParentQuestNotify, notify)
+}
+
+func (g *Game) ScenePlayerInfoNotify() {
+	notify := &proto.ScenePlayerInfoNotify{
+		PlayerInfoList: make([]*proto.ScenePlayerInfo, 0),
+	}
+	// 添加当前角色
+	db := g.Player.GetPbPlayerBasicCompBin()
+	notify.PlayerInfoList = append(notify.PlayerInfoList, &proto.ScenePlayerInfo{
+		Uid:         g.Uid,
+		PeerId:      1,
+		Name:        db.Nickname,
+		IsConnected: false,
+		SceneId:     3,
+		OnlinePlayerInfo: &proto.OnlinePlayerInfo{
+			Uid:                 g.Uid,
+			Nickname:            db.Nickname,
+			PlayerLevel:         db.Level,
+			AvatarId:            db.AvatarId,
+			MpSettingType:       proto.MpSettingType_MP_SETTING_ENTER_AFTER_APPLY,
+			CurPlayerNumInWorld: 1,
+			WorldLevel:          db.WorldLevel,
+			OnlineId:            "",
+			NameCardId:          db.NameCardId,
+			BlacklistUidList:    nil,
+			Signature:           db.Signature,
+		},
+	})
+
+	g.seed(cmd.ScenePlayerInfoNotify, notify)
 }
 
 /*************************************封装******************************************/
@@ -113,6 +150,10 @@ func (g *Game) PacketPropValue(key uint32, value any) *proto.PropValue {
 }
 
 /*************************************数据包处理******************************************/
+
+func (g *Game) GetPlayerBlacklistRsp(payloadMsg pb.Message) {
+	g.seed(cmd.GetPlayerBlacklistRsp, nil)
+}
 
 func (g *Game) GetPlayerSocialDetailReq(payloadMsg pb.Message) {
 	db := g.Player.GetPbPlayerBasicCompBin()

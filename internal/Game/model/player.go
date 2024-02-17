@@ -10,7 +10,7 @@ import (
 var SNOWFLAKE *alg.SnowflakeWorker
 
 type Player struct {
-	PlayerPb *playerPb.PlayerDataBin // 离线数据只读,禁止修改
+	PlayerPb *playerPb.PlayerDataBin
 }
 
 func NewPlayer(bin []byte) *Player {

@@ -41,8 +41,12 @@ func (g *Game) AvatarDataNotify() {
 	teamList := g.Player.GetPbTeamList()
 	for id, team := range teamList {
 		avatarTeam := &proto.AvatarTeam{
-			AvatarGuidList: team.AvatarGuidList,
+			AvatarGuidList: make([]uint64, 0),
 			TeamName:       team.TeamName,
+		}
+		for _, avatarId := range team.AvatarGuidList {
+			avatar := g.Player.GetPbAvatarById(avatarId)
+			avatarTeam.AvatarGuidList = append(avatarTeam.AvatarGuidList, avatar.Guid)
 		}
 		notify.AvatarTeamMap[id] = avatarTeam
 	}
