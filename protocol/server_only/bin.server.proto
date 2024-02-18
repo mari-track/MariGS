@@ -78,7 +78,7 @@ message AvatarBin {
   float cur_elem_energy = 7; // 当前元素能量
   uint32 promote_level = 8; // 突破等级
   uint32 skill_depot_id = 9; // 技能库id
-  map<uint32, AvatarSkillBin> skill_map = 10; // 技能
+  map<uint32, uint32> skill_map = 10; // 技能
   //map<uint32, AvatarBuffBin> buff_map = 11;
   //map<uint32, AvatarSkillDepotBin> depot_map = 12;
   uint64 weapon_guid = 13; // 装备的武器唯一id
@@ -94,7 +94,7 @@ message AvatarBin {
 }
 
 message AvatarTeamBin {
-  repeated uint32 avatar_guid_list = 1; // 队伍角色
+  repeated uint32 avatar_id_list = 1; // 队伍角色
   string team_name = 2; // 队伍名称
   uint32 last_cur_avatar_id = 3; // 当前上场角色
 }
@@ -103,11 +103,6 @@ message AvatarBuffBin {
   uint32 left_time = 1;
   uint32 buff_uid = 2;
   uint32 buff_type = 3;
-}
-
-message AvatarSkillBin {
-  uint32 pass_cd_time = 1;
-  repeated uint32 full_cd_time_list = 2;
 }
 
 message AvatarSkillDepotBin {

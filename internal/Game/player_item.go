@@ -100,6 +100,8 @@ func (g *Game) AddAvatar(avatarId uint32) {
 	g.Player.AddAvatar(avatarId)
 	// 然后添加武器
 	g.AddWeapon(weaponGuid, conf.InitialWeapon)
+	// 角色装备武器
+	g.UpdateAvatarWeapon(avatarId, weaponGuid)
 	// 发送通知
 	g.AvatarFightPropUpdateNotify(avatarId)
 }

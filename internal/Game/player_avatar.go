@@ -24,10 +24,10 @@ func (g *Game) AvatarDataNotify() {
 	notify := &proto.AvatarDataNotify{
 		AvatarList:         make([]*proto.AvatarInfo, 0),
 		AvatarTeamMap:      make(map[uint32]*proto.AvatarTeam),
-		CurAvatarTeamId:    db.CurTeamId,
-		ChooseAvatarGuid:   db.ChooseAvatarGuid,
+		CurAvatarTeamId:    db.CurTeamId,        // 当前队伍id
+		ChooseAvatarGuid:   db.ChooseAvatarGuid, // 选择的角色Guid
 		TempAvatarGuidList: make([]uint64, 0),
-		OwnedFlycloakList:  db.OwnedFlycloakList,
+		OwnedFlycloakList:  db.OwnedFlycloakList, // 拥有的风之翼
 	}
 
 	// 获取角色
@@ -44,7 +44,7 @@ func (g *Game) AvatarDataNotify() {
 			AvatarGuidList: make([]uint64, 0),
 			TeamName:       team.TeamName,
 		}
-		for _, avatarId := range team.AvatarGuidList {
+		for _, avatarId := range team.AvatarIdList {
 			avatar := g.Player.GetPbAvatarById(avatarId)
 			avatarTeam.AvatarGuidList = append(avatarTeam.AvatarGuidList, avatar.Guid)
 		}
@@ -59,9 +59,10 @@ func (g *Game) AvatarDataNotify() {
 func (g *Game) PacketAvatarInfo(avatarId uint32) *proto.AvatarInfo {
 	avatar := g.Player.GetPbAvatarById(avatarId)
 	pbAvatar := &proto.AvatarInfo{
-		IsFocus:  false,
-		AvatarId: avatar.AvatarId,
-		Guid:     avatar.Guid,
+		IsFocus:    false,
+		AvatarId:   avatar.AvatarId,
+		AvatarType: proto.AvatarType_AVATAR_TYPE_FORMAL,
+		Guid:       avatar.Guid,
 		PropMap: map[uint32]*proto.PropValue{
 			uint32(constant.PLAYER_PROP_LEVEL): {
 				Type:  uint32(constant.PLAYER_PROP_LEVEL),
@@ -97,13 +98,12 @@ func (g *Game) PacketAvatarInfo(avatarId uint32) *proto.AvatarInfo {
 			ExpLevel:                avatar.FetterLevel,
 			ExpNumber:               avatar.FetterExp,
 			FetterList:              nil,
-			RewardedFetterLevelList: []uint32{10},
+			RewardedFetterLevelList: make([]uint32, 0),
 		},
-		// SkillLevelMap:          avatar.SkillLevelMap,
-		TalentIdList: avatar.TalentIdList,
-		// InherentProudSkillList: gdconf.GetAvatarInherentProudSkillList(avatar.SkillDepotId, avatar.PromoteLevel),
-		AvatarType:        1,
-		WearingFlycloakId: avatar.FlycloakId,
+		SkillLevelMap:          avatar.SkillMap,
+		TalentIdList:           avatar.TalentIdList,
+		InherentProudSkillList: gdconf.GetAvatarInherentProudSkillList(avatar.SkillDepotId, avatar.PromoteLevel),
+		WearingFlycloakId:      avatar.FlycloakId,
 	}
 	// 解锁全部资料
 	for _, v := range gdconf.GetFetterIdListByAvatarId(int32(avatar.AvatarId)) {
@@ -120,5 +120,8 @@ func (g *Game) PacketAvatarInfo(avatarId uint32) *proto.AvatarInfo {
 			}
 		}
 	*/
+	// 添加装备的武器
+	pbAvatar.EquipGuidList = append(pbAvatar.EquipGuidList, avatar.WeaponGuid)
+	// 添加装备的圣遗物
 	return pbAvatar
 }

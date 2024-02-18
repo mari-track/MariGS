@@ -24,7 +24,7 @@ func (g *Game) PlayerDataNotify() {
 		NickName:          db.Nickname,
 		ServerTime:        uint64(GetServerTime()),
 		IsFirstLoginToday: true,
-		RegionId:          1,
+		RegionId:          2,
 		PropMap:           make(map[uint32]*proto.PropValue),
 	}
 
@@ -94,6 +94,51 @@ func (g *Game) ScenePlayerInfoNotify() {
 	g.seed(cmd.ScenePlayerInfoNotify, notify)
 }
 
+func (g *Game) SceneTeamUpdateNotify() {
+	notify := &proto.SceneTeamUpdateNotify{
+		SceneTeamAvatarList: make([]*proto.SceneTeamAvatar, 0),
+		IsInMp:              false,
+	}
+	// 添加当前角色
+	db := g.Player.GetPbPlayerSceneCompBin()
+	avatarEntity := g.SceneEntity.GetAvatarEntity()
+	for entityId, entity := range avatarEntity {
+		avatarDb := g.Player.GetPbAvatarById(entity.AvatarId)
+		sceneTeamAvatar := &proto.SceneTeamAvatar{
+			PlayerUid:         g.Uid,
+			AvatarGuid:        avatarDb.Guid,
+			SceneId:           db.MyCurSceneId,
+			EntityId:          entityId,
+			AvatarInfo:        nil,
+			SceneAvatarInfo:   nil,
+			AvatarAbilityInfo: nil,
+			ServerBuffList:    nil,
+			WeaponGuid:        avatarDb.WeaponGuid,
+			WeaponEntityId:    entity.WeaponEntityId,
+			WeaponAbilityInfo: nil,
+			AbilityControlBlock: &proto.AbilityControlBlock{AbilityEmbryoList: []*proto.AbilityEmbryo{
+				{AbilityId: 1, AbilityNameHash: 4291357363, AbilityOverrideNameHash: 1178079449},
+				{AbilityId: 2, AbilityNameHash: 1410219662, AbilityOverrideNameHash: 1178079449},
+				{AbilityId: 3, AbilityNameHash: 1474894886, AbilityOverrideNameHash: 1178079449},
+				{AbilityId: 4, AbilityNameHash: 3832178184, AbilityOverrideNameHash: 1178079449},
+				{AbilityId: 5, AbilityNameHash: 1771196189, AbilityOverrideNameHash: 1178079449},
+				{AbilityId: 6, AbilityNameHash: 2306062007, AbilityOverrideNameHash: 1178079449},
+				{AbilityId: 7, AbilityNameHash: 3105629177, AbilityOverrideNameHash: 1178079449},
+				{AbilityId: 8, AbilityNameHash: 3771526669, AbilityOverrideNameHash: 1178079449},
+				{AbilityId: 9, AbilityNameHash: 100636247, AbilityOverrideNameHash: 1178079449},
+				{AbilityId: 10, AbilityNameHash: 1564404322, AbilityOverrideNameHash: 1178079449},
+				{AbilityId: 11, AbilityNameHash: 497711942, AbilityOverrideNameHash: 1178079449},
+				{AbilityId: 12, AbilityNameHash: 3531639848, AbilityOverrideNameHash: 1178079449},
+				{AbilityId: 13, AbilityNameHash: 4255783285, AbilityOverrideNameHash: 1178079449},
+				{AbilityId: 14, AbilityNameHash: 3374327026, AbilityOverrideNameHash: 1178079449},
+				{AbilityId: 15, AbilityNameHash: 825255509, AbilityOverrideNameHash: 1178079449},
+			}},
+			IsReconnect: false,
+		}
+		notify.SceneTeamAvatarList = append(notify.SceneTeamAvatarList, sceneTeamAvatar)
+	}
+}
+
 /*************************************封装******************************************/
 
 func (g *Game) PacketPropValue(key uint32, value any) *proto.PropValue {
@@ -151,7 +196,7 @@ func (g *Game) PacketPropValue(key uint32, value any) *proto.PropValue {
 
 /*************************************数据包处理******************************************/
 
-func (g *Game) GetPlayerBlacklistRsp(payloadMsg pb.Message) {
+func (g *Game) GetPlayerBlacklistReq(payloadMsg pb.Message) {
 	g.seed(cmd.GetPlayerBlacklistRsp, nil)
 }
 

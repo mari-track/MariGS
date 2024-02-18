@@ -6,6 +6,7 @@ import (
 
 	"github.com/mari-track/MariGS/internal/DataBase"
 	"github.com/mari-track/MariGS/internal/Game/model"
+	"github.com/mari-track/MariGS/internal/Game/sceneEntity"
 	"github.com/mari-track/MariGS/pkg/logger"
 	"github.com/mari-track/MariGS/pkg/random"
 	"github.com/mari-track/MariGS/protocol/cmd"
@@ -110,12 +111,20 @@ func (g *Game) PlayerLoginReq(payloadMsg pb.Message) {
 		return
 	}
 
-	if !g.Player.GetPbPlayerBasicCompBin().IsProficientPlayer {
-		g.seed(cmd.DoSetPlayerBornDataNotify, nil)
-	} else {
-		// 发送登录通知包
-		g.LoginNotify()
-	}
+	/*
+		if !g.Player.GetPbPlayerBasicCompBin().IsProficientPlayer {
+			g.seed(cmd.DoSetPlayerBornDataNotify, nil)
+		} else {
+			// 发送登录通知包
+			g.LoginNotify()
+		}
+	*/
+	// 直接登录
+	g.PlayerBornData("测试", 10000007)
+	g.LoginNotify()
+
+	// 初始化实体
+	g.SceneEntity = new(sceneEntity.SceneEntity)
 
 	rsp := &proto.PlayerLoginRsp{
 		AbilityHashCode:  0,
@@ -138,7 +147,7 @@ func (g *Game) SetPlayerBornDataReq(payloadMsg pb.Message) {
 	avatarDb := g.Player.GetPbAvatarById(req.AvatarId)
 	team1 := g.Player.GetPbTeamById(1)
 	team1.LastCurAvatarId = req.AvatarId
-	team1.AvatarGuidList = append(team1.AvatarGuidList, req.AvatarId)
+	team1.AvatarIdList = append(team1.AvatarIdList, req.AvatarId)
 	avatarBin := g.Player.GetPbPlayerAvatarCompBin()
 	// 设置当前角色状态
 	avatarBin.ChooseAvatarGuid = avatarDb.Guid
@@ -152,6 +161,28 @@ func (g *Game) SetPlayerBornDataReq(payloadMsg pb.Message) {
 	// 发送登录通知包
 	g.LoginNotify()
 	g.seed(cmd.SetPlayerBornDataRsp, nil)
+}
+
+func (g *Game) PlayerBornData(nickName string, avatarId uint32) {
+	// 更新昵称
+	g.Player.UptoDateNickname(nickName)
+	// 添加角色
+	g.AddAvatar(avatarId)
+	// 将角色添加到队伍1
+	avatarDb := g.Player.GetPbAvatarById(avatarId)
+	team1 := g.Player.GetPbTeamById(1)
+	team1.LastCurAvatarId = avatarId
+	team1.AvatarIdList = append(team1.AvatarIdList, avatarId)
+	avatarBin := g.Player.GetPbPlayerAvatarCompBin()
+	// 设置当前角色状态
+	avatarBin.ChooseAvatarGuid = avatarDb.Guid
+	avatarBin.CurTeamId = 1
+	// 添加基础风之翼
+	avatarBin.OwnedFlycloakList = append(avatarBin.OwnedFlycloakList, 140001)
+	// 更新basic bin
+	basicBin := g.Player.GetPbPlayerBasicCompBin()
+	basicBin.AvatarId = avatarId
+	basicBin.NameCardId = 210001
 }
 
 // 登录通知包

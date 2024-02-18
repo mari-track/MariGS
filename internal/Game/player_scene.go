@@ -1,6 +1,7 @@
 package Game
 
 import (
+	"github.com/mari-track/MariGS/internal/Game/sceneEntity"
 	"github.com/mari-track/MariGS/protocol/cmd"
 	"github.com/mari-track/MariGS/protocol/proto"
 	pb "google.golang.org/protobuf/proto"
@@ -20,6 +21,8 @@ func (g *Game) PlayerEnterSceneNotify() {
 	// TODO
 	basicDb := g.Player.GetPbPlayerBasicCompBin()
 	sceneDb := g.Player.GetPbPlayerSceneCompBin()
+	// 设置场景token
+	g.SceneToken = uint32(g.GetNextGameObjectGuid())
 	notify := &proto.PlayerEnterSceneNotify{
 		SceneId: sceneDb.MyCurSceneId,
 		Pos: &proto.Vector{
@@ -38,7 +41,7 @@ func (g *Game) PlayerEnterSceneNotify() {
 		PrevSceneId:            0,
 		DungeonId:              0,
 		WorldLevel:             basicDb.WorldLevel,
-		EnterSceneToken:        6070,
+		EnterSceneToken:        g.SceneToken,
 		IsFirstLoginEnterScene: true,
 	}
 
@@ -52,7 +55,7 @@ func (g *Game) EnterScenePeerNotify() {
 		DestSceneId:     db.MyCurSceneId,
 		PeerId:          1,
 		HostPeerId:      1,
-		EnterSceneToken: 6070,
+		EnterSceneToken: g.SceneToken,
 	}
 	g.seed(cmd.EnterScenePeerNotify, notify)
 }
@@ -107,6 +110,13 @@ func (g *Game) HostPlayerNotify() {
 	g.seed(cmd.HostPlayerNotify, notify)
 }
 
+func (g *Game) SceneDataNotify() {
+	notify := &proto.SceneDataNotify{
+		LevelConfigNameList: []string{"Level_BigWorld"},
+	}
+	g.seed(cmd.SceneDataNotify, notify)
+}
+
 func (g *Game) SceneTimeNotify() {
 	db := g.Player.GetPbPlayerSceneCompBin()
 	notify := &proto.SceneTimeNotify{
@@ -136,32 +146,39 @@ func (g *Game) PlayerEnterSceneInfoNotify() {
 			TeamAbilityInfo: nil,
 		},
 		MpLevelEntityInfo: &proto.MPLevelEntityInfo{
-			EntityId:        0,
-			AuthorityPeerId: 0,
+			EntityId:        uint32(g.GetNextGameObjectGuid()),
+			AuthorityPeerId: g.Uid,
 			AbilityInfo:     nil,
 		},
-		EnterSceneToken: 6070,
+		EnterSceneToken: g.SceneToken,
 	}
 	// 添加角色
-	for _, avatarId := range curTeam.AvatarGuidList {
-		entityId := uint32(g.GetNextGameObjectGuid())
+	avatarEntity := g.SceneEntity.GetAvatarEntity()
+	for _, avatarId := range curTeam.AvatarIdList {
+		avatarEntityId := uint32(g.GetNextGameObjectGuid())
+		weaponEntityId := uint32(g.GetNextGameObjectGuid())
 		avatarDb := avatarList[avatarId]
 		if avatarDb == nil {
 			continue
 		}
 		avatarEnterSceneInfo := &proto.AvatarEnterSceneInfo{
 			AvatarGuid:        avatarDb.Guid,
-			AvatarEntityId:    entityId,
+			AvatarEntityId:    avatarEntityId,
 			AvatarAbilityInfo: nil,
 			BuffIdList:        nil,
 			WeaponGuid:        avatarDb.WeaponGuid,
-			WeaponEntityId:    uint32(g.GetNextGameObjectGuid()),
+			WeaponEntityId:    weaponEntityId,
 			WeaponAbilityInfo: nil,
 			ServerBuffList:    nil,
 		}
 		notify.AvatarEnterInfo = append(notify.AvatarEnterInfo, avatarEnterSceneInfo)
 		if avatarId == curTeam.LastCurAvatarId {
-			notify.CurAvatarEntityId = entityId
+			notify.CurAvatarEntityId = avatarEntityId
+		}
+		// 添加avatar实体
+		avatarEntity[avatarEntityId] = &sceneEntity.AvatarEntity{
+			AvatarId:       avatarId,
+			WeaponEntityId: weaponEntityId,
 		}
 	}
 
@@ -234,10 +251,12 @@ func (g *Game) SceneInitFinishReq(payloadMsg pb.Message) {
 	g.WorldDataNotify() // 世界数据通知
 	g.SceneForceUnlockNotify()
 	g.HostPlayerNotify()
+	g.SceneDataNotify()
 	g.SceneTimeNotify()
 	g.PlayerGameTimeNotify()
 	g.PlayerEnterSceneInfoNotify() // 实体通知
 	g.ScenePlayerInfoNotify()
+	g.SceneTeamUpdateNotify()
 	/*
 		SceneForceUnlockNotify
 	*/
