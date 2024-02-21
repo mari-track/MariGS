@@ -36,8 +36,9 @@ type Http struct {
 	Port int64  `json:"port"`
 }
 type Game struct {
-	Addr string `json:"addr"`
-	Port uint32 `json:"port"`
+	Addr             string `json:"addr"`
+	Port             uint32 `json:"port"`
+	IsInitialization bool   `json:"isInitialization"`
 }
 
 var CONF *Config = nil
@@ -90,7 +91,8 @@ var DefaultConfig = &Config{
 		Port: 8080,
 	},
 	Game: &Game{
-		Addr: "127.0.0.1",
-		Port: 22102,
+		Addr:             "127.0.0.1",
+		Port:             22102,
+		IsInitialization: true,
 	},
 }

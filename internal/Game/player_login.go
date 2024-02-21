@@ -7,6 +7,7 @@ import (
 	"github.com/mari-track/MariGS/internal/DataBase"
 	"github.com/mari-track/MariGS/internal/Game/model"
 	"github.com/mari-track/MariGS/internal/Game/sceneEntity"
+	"github.com/mari-track/MariGS/pkg/config"
 	"github.com/mari-track/MariGS/pkg/logger"
 	"github.com/mari-track/MariGS/pkg/random"
 	"github.com/mari-track/MariGS/protocol/cmd"
@@ -111,17 +112,18 @@ func (g *Game) PlayerLoginReq(payloadMsg pb.Message) {
 		return
 	}
 
-	/*
-		if !g.Player.GetPbPlayerBasicCompBin().IsProficientPlayer {
+	if !g.Player.GetPbPlayerBasicCompBin().IsProficientPlayer {
+		if config.GetConfig().Game.IsInitialization {
 			g.seed(cmd.DoSetPlayerBornDataNotify, nil)
 		} else {
-			// 发送登录通知包
+			// 直接登录
+			g.PlayerBornData("MariGS", 10000007)
 			g.LoginNotify()
 		}
-	*/
-	// 直接登录
-	g.PlayerBornData("测试", 10000007)
-	g.LoginNotify()
+	} else {
+		// 发送登录通知包
+		g.LoginNotify()
+	}
 
 	// 初始化实体
 	g.SceneEntity = new(sceneEntity.SceneEntity)
@@ -140,25 +142,7 @@ func (g *Game) SetPlayerBornDataReq(payloadMsg pb.Message) {
 	if req.NickName == "" || (req.AvatarId != 10000007 && req.AvatarId != 10000005) {
 		return
 	}
-	// 更新昵称
-	g.Player.UptoDateNickname(req.NickName)
-	// 添加角色
-	g.AddAvatar(req.AvatarId)
-	// 将角色添加到队伍1
-	avatarDb := g.Player.GetPbAvatarById(req.AvatarId)
-	team1 := g.Player.GetPbTeamById(1)
-	team1.LastCurAvatarId = req.AvatarId
-	team1.AvatarIdList = append(team1.AvatarIdList, req.AvatarId)
-	avatarBin := g.Player.GetPbPlayerAvatarCompBin()
-	// 设置当前角色状态
-	avatarBin.ChooseAvatarGuid = avatarDb.Guid
-	avatarBin.CurTeamId = 1
-	// 添加基础风之翼
-	avatarBin.OwnedFlycloakList = append(avatarBin.OwnedFlycloakList, 140001)
-	// 更新basic bin
-	basicBin := g.Player.GetPbPlayerBasicCompBin()
-	basicBin.AvatarId = req.AvatarId
-	basicBin.NameCardId = 210001
+	g.PlayerBornData(req.NickName, req.AvatarId)
 	// 发送登录通知包
 	g.LoginNotify()
 	g.seed(cmd.SetPlayerBornDataRsp, nil)
@@ -188,26 +172,6 @@ func (g *Game) PlayerBornData(nickName string, avatarId uint32) {
 
 // 登录通知包
 func (g *Game) LoginNotify() {
-	g.seed(cmd.PlayerPropNotify, &proto.PlayerPropNotify{
-		PropMap: map[uint32]*proto.PropValue{
-			10020: {
-				Type:  10020,
-				Val:   120,
-				Value: &proto.PropValue_Ival{Ival: 120},
-			},
-		},
-	})
-	g.seed(cmd.ResinChangeNotify, &proto.ResinChangeNotify{CurValue: 120})
-	g.seed(cmd.PlayerPropNotify, &proto.PlayerPropNotify{
-		PropMap: map[uint32]*proto.PropValue{
-			10018: {
-				Type:  10018,
-				Val:   1,
-				Value: &proto.PropValue_Ival{Ival: 1},
-			},
-		},
-	})
-	g.CodexDataFullNotify()
 	g.PlayerDataNotify()
 	g.OpenStateUpdateNotify()
 	g.StoreWeightLimitNotify()
@@ -223,18 +187,4 @@ func (g *Game) LoginNotify() {
 	g.FinishedParentQuestNotify()
 	g.QuestListNotify()
 	g.PlayerEnterSceneNotify()
-}
-
-func (g *Game) CodexDataFullNotify() {
-	notify := &proto.CodexDataFullNotify{
-		TypeDataList: []*proto.CodexTypeData{
-			{
-				CodexIdList: []uint32{30211101},
-				Type:        proto.CodexType_CODEX_WEAPON,
-			},
-		},
-		Exp:   1,
-		Level: 0,
-	}
-	g.seed(cmd.CodexDataFullNotify, notify)
 }
