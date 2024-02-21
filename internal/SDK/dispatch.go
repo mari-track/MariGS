@@ -184,8 +184,10 @@ func (s *Server) GetRegionCurrDump(c *gin.Context) {
 	}
 
 	if dispatch.ClientSecretKey != nil {
+		dispatch.RegionInfo.GateserverIp = "127.0.0.1"
+		dispatch.RegionInfo.GateserverPort = 20045
 		ec2b, _ := random.LoadEc2bKey(dispatch.ClientSecretKey)
-
+		logger.Info("%s", base64.StdEncoding.EncodeToString(dispatch.ClientSecretKey))
 		logger.Info("%s", base64.StdEncoding.EncodeToString(ec2b.XorKey()))
 	}
 	rspbin, _ := pb.Marshal(dispatch)

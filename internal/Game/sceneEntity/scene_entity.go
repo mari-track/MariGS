@@ -1,7 +1,8 @@
 package sceneEntity
 
 type SceneEntity struct {
-	AvatarEntity map[uint32]*AvatarEntity
+	entityIdCounter uint32
+	AvatarEntity    map[uint32]*AvatarEntity
 }
 
 type AvatarEntity struct {
@@ -15,4 +16,24 @@ func (s *SceneEntity) GetAvatarEntity() map[uint32]*AvatarEntity {
 	}
 
 	return s.AvatarEntity
+}
+
+func (s *SceneEntity) GetNextWorldEntityId(entityType uint8) uint32 {
+	for {
+		s.entityIdCounter++
+		ret := (uint32(entityType) << 24) + s.entityIdCounter
+		reTry := false
+		for id := range s.AvatarEntity {
+			// _, exist := scene.entityMap[ret]
+			if ret == id {
+				reTry = true
+				break
+			}
+		}
+		if reTry {
+			continue
+		} else {
+			return ret
+		}
+	}
 }

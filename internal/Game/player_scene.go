@@ -1,7 +1,10 @@
 package Game
 
 import (
+	"time"
+
 	"github.com/mari-track/MariGS/internal/Game/sceneEntity"
+	"github.com/mari-track/MariGS/pkg/constant"
 	"github.com/mari-track/MariGS/protocol/cmd"
 	"github.com/mari-track/MariGS/protocol/proto"
 	pb "google.golang.org/protobuf/proto"
@@ -29,11 +32,6 @@ func (g *Game) PlayerEnterSceneNotify() {
 			X: sceneDb.MyCurPos.X,
 			Y: sceneDb.MyCurPos.Y,
 			Z: sceneDb.MyCurPos.Z,
-		},
-		PrevPos: &proto.Vector{
-			X: sceneDb.MyCurRot.X,
-			Y: sceneDb.MyCurRot.Y,
-			Z: sceneDb.MyCurRot.Z,
 		},
 		SceneBeginTime:         uint64(GetServerTime()),
 		Type:                   proto.EnterType_ENTER_SELF,
@@ -91,9 +89,8 @@ func (g *Game) WorldDataNotify() {
 	notify.WorldPropMap[1] = &proto.PropValue{
 		Type:  1,
 		Val:   0,
-		Value: nil,
+		Value: &proto.PropValue_Ival{Ival: 0},
 	}
-
 	g.seed(cmd.WorldDataNotify, notify)
 }
 
@@ -142,21 +139,23 @@ func (g *Game) PlayerEnterSceneInfoNotify() {
 		CurAvatarEntityId: 0,
 		AvatarEnterInfo:   make([]*proto.AvatarEnterSceneInfo, 0),
 		TeamEnterInfo: &proto.TeamEnterSceneInfo{
-			TeamEntityId:    uint32(g.GetNextGameObjectGuid()),
-			TeamAbilityInfo: nil,
+			TeamEntityId:    g.SceneEntity.GetNextWorldEntityId(constant.ENTITY_TYPE_TEAM),
+			TeamAbilityInfo: &proto.AbilitySyncStateInfo{IsInited: false},
 		},
 		MpLevelEntityInfo: &proto.MPLevelEntityInfo{
-			EntityId:        uint32(g.GetNextGameObjectGuid()),
+			EntityId:        g.SceneEntity.GetNextWorldEntityId(constant.ENTITY_TYPE_MP_LEVEL),
 			AuthorityPeerId: g.Uid,
-			AbilityInfo:     nil,
+			AbilityInfo: &proto.AbilitySyncStateInfo{
+				IsInited: false,
+			},
 		},
 		EnterSceneToken: g.SceneToken,
 	}
 	// 添加角色
 	avatarEntity := g.SceneEntity.GetAvatarEntity()
 	for _, avatarId := range curTeam.AvatarIdList {
-		avatarEntityId := uint32(g.GetNextGameObjectGuid())
-		weaponEntityId := uint32(g.GetNextGameObjectGuid())
+		avatarEntityId := g.SceneEntity.GetNextWorldEntityId(constant.ENTITY_TYPE_AVATAR)
+		weaponEntityId := g.SceneEntity.GetNextWorldEntityId(constant.ENTITY_TYPE_WEAPON)
 		avatarDb := avatarList[avatarId]
 		if avatarDb == nil {
 			continue
@@ -164,11 +163,11 @@ func (g *Game) PlayerEnterSceneInfoNotify() {
 		avatarEnterSceneInfo := &proto.AvatarEnterSceneInfo{
 			AvatarGuid:        avatarDb.Guid,
 			AvatarEntityId:    avatarEntityId,
-			AvatarAbilityInfo: nil,
+			AvatarAbilityInfo: &proto.AbilitySyncStateInfo{IsInited: false},
 			BuffIdList:        nil,
 			WeaponGuid:        avatarDb.WeaponGuid,
 			WeaponEntityId:    weaponEntityId,
-			WeaponAbilityInfo: nil,
+			WeaponAbilityInfo: &proto.AbilitySyncStateInfo{IsInited: false},
 			ServerBuffList:    nil,
 		}
 		notify.AvatarEnterInfo = append(notify.AvatarEnterInfo, avatarEnterSceneInfo)
@@ -183,6 +182,107 @@ func (g *Game) PlayerEnterSceneInfoNotify() {
 	}
 
 	g.seed(cmd.PlayerEnterSceneInfoNotify, notify)
+}
+
+func (g *Game) SceneEntityAppearNotify() {
+	notify := &proto.SceneEntityAppearNotify{
+		EntityList: make([]*proto.SceneEntityInfo, 0),
+		AppearType: proto.VisionType_VISION_MEET,
+		Param:      0,
+	}
+	// add avatar
+	avatarEntity := g.SceneEntity.GetAvatarEntity()
+	for entityId, entity := range avatarEntity {
+		avatarPb := g.Player.GetPbAvatarById(entity.AvatarId)
+		weaponPb := g.Player.GetPbWeaponByGuid(avatarPb.WeaponGuid)
+		sceneEntityInfo := &proto.SceneEntityInfo{
+			AbilityInfo: &proto.AbilitySyncStateInfo{IsInited: false},
+			AiInfo: &proto.SceneEntityAiInfo{
+				IsAiOpen: true,
+				BornPos: &proto.Vector{
+					X: 0,
+					Y: 0,
+					Z: 0,
+				},
+				SkillCdMap:  nil,
+				ServantInfo: nil,
+				AiThreatMap: nil,
+			},
+			AnimatorParaList: make([]*proto.AnimatorParameterValueInfoPair, 0),
+			Entity: &proto.SceneEntityInfo_Avatar{Avatar: &proto.SceneAvatarInfo{
+				AvatarId:      entity.AvatarId,
+				BornTime:      uint32(time.Now().Unix()),
+				EquipIdList:   []uint32{11101},
+				Guid:          avatarPb.Guid,
+				PeerId:        1,
+				SkillDepotId:  avatarPb.SkillDepotId,
+				SkillLevelMap: avatarPb.SkillMap,
+				Uid:           g.Uid,
+				Weapon: &proto.SceneWeaponInfo{
+					EntityId:     entity.WeaponEntityId,
+					GadgetId:     50011101,
+					ItemId:       weaponPb.WeaponId,
+					Guid:         weaponPb.Guid,
+					Level:        weaponPb.Level,
+					PromoteLevel: weaponPb.PromoteLevel,
+					AbilityInfo:  &proto.AbilitySyncStateInfo{IsInited: false},
+					AffixMap:     nil,
+				},
+				WearingFlycloakId: avatarPb.FlycloakId,
+			}},
+			EntityClientData: &proto.EntityClientData{
+				WindChangeSceneTime:   0,
+				WindmillSyncAngle:     0,
+				WindChangeTargetLevel: 0,
+			},
+			EntityId:      entityId,
+			EntityType:    proto.ProtEntityType_PROT_ENTITY_AVATAR,
+			FightPropList: make([]*proto.FightPropPair, 0),
+			LifeState:     1,
+			MotionInfo: &proto.MotionInfo{
+				Pos: &proto.Vector{
+					X: 2739.658,
+					Y: 194.6,
+					Z: -1711.08,
+				},
+				Rot: &proto.Vector{
+					X: 0,
+					Y: 316.9,
+					Z: 0,
+				},
+				Speed: &proto.Vector{
+					X: 0,
+					Y: 0,
+					Z: 0,
+				},
+				State:  0,
+				Params: nil,
+			},
+			PropList: []*proto.PropPair{{
+				PropValue: &proto.PropValue{
+					Type:  4001,
+					Val:   1,
+					Value: &proto.PropValue_Ival{Ival: 1},
+				},
+				Type: 4001,
+			}},
+			RendererChangedInfo: &proto.EntityRendererChangedInfo{
+				ChangedRenderers: nil,
+				VisibilityCount:  0,
+			},
+		}
+
+		for id, value := range avatarPb.FightPropMap {
+			fightPropList := &proto.FightPropPair{
+				PropType:  id,
+				PropValue: value,
+			}
+			sceneEntityInfo.FightPropList = append(sceneEntityInfo.FightPropList, fightPropList)
+		}
+		notify.EntityList = append(notify.EntityList, sceneEntityInfo)
+	}
+
+	g.seed(cmd.SceneEntityAppearNotify, notify)
 }
 
 /*************************************数据包处理******************************************/
@@ -249,14 +349,21 @@ func (g *Game) SceneInitFinishReq(payloadMsg pb.Message) {
 	// WorldOwnerDailyTaskNotify p1玩家每日任务通知
 	// WorldOwnerBlossomBriefInfoNotify p1玩家世界
 	g.WorldDataNotify() // 世界数据通知
-	g.SceneForceUnlockNotify()
 	g.HostPlayerNotify()
 	g.SceneDataNotify()
 	g.SceneTimeNotify()
+	g.seed(cmd.SceneAreaWeatherNotify, &proto.SceneAreaWeatherNotify{
+		WeatherAreaId: 1,
+		ClimateType:   1,
+	})
 	g.PlayerGameTimeNotify()
 	g.PlayerEnterSceneInfoNotify() // 实体通知
 	g.ScenePlayerInfoNotify()
 	g.SceneTeamUpdateNotify()
+	g.seed(cmd.SyncTeamEntityNotify, &proto.SyncTeamEntityNotify{
+		SceneId: 3,
+	})
+	g.SceneForceUnlockNotify()
 	/*
 		SceneForceUnlockNotify
 	*/
@@ -273,6 +380,7 @@ func (g *Game) EnterSceneDoneReq(payloadMsg pb.Message) {
 		Retcode:         0,
 		EnterSceneToken: req.EnterSceneToken,
 	}
+	g.SceneEntityAppearNotify()
 	g.seed(cmd.EnterSceneDoneRsp, rsp)
 }
 

@@ -127,9 +127,10 @@ func (g *Game) PlayerLoginReq(payloadMsg pb.Message) {
 	g.SceneEntity = new(sceneEntity.SceneEntity)
 
 	rsp := &proto.PlayerLoginRsp{
-		AbilityHashCode:  0,
+		AbilityHashCode:  1856262287,
 		GameBiz:          "hk4e_global",
 		IsUseAbilityHash: true,
+		RegisterCps:      "mihoyo",
 	}
 	g.seed(cmd.PlayerLoginRsp, rsp)
 }
@@ -187,14 +188,34 @@ func (g *Game) PlayerBornData(nickName string, avatarId uint32) {
 
 // 登录通知包
 func (g *Game) LoginNotify() {
+	g.seed(cmd.PlayerPropNotify, &proto.PlayerPropNotify{
+		PropMap: map[uint32]*proto.PropValue{
+			10020: {
+				Type:  10020,
+				Val:   120,
+				Value: &proto.PropValue_Ival{Ival: 120},
+			},
+		},
+	})
+	g.seed(cmd.ResinChangeNotify, &proto.ResinChangeNotify{CurValue: 120})
+	g.seed(cmd.PlayerPropNotify, &proto.PlayerPropNotify{
+		PropMap: map[uint32]*proto.PropValue{
+			10018: {
+				Type:  10018,
+				Val:   1,
+				Value: &proto.PropValue_Ival{Ival: 1},
+			},
+		},
+	})
+	g.CodexDataFullNotify()
 	g.PlayerDataNotify()
-	g.PlayerLevelRewardUpdateNotify()
 	g.OpenStateUpdateNotify()
-	g.AllSeenMonsterNotify()
 	g.StoreWeightLimitNotify()
 	g.PlayerStoreNotify()
-	g.ItemCdGroupTimeNotify()
 	g.AvatarDataNotify()
+	g.PlayerLevelRewardUpdateNotify()
+	g.AllSeenMonsterNotify()
+	g.ItemCdGroupTimeNotify()
 	/*
 		AvatarExpeditionDataNotify
 		AvatarSatiationDataNotify
@@ -202,4 +223,18 @@ func (g *Game) LoginNotify() {
 	g.FinishedParentQuestNotify()
 	g.QuestListNotify()
 	g.PlayerEnterSceneNotify()
+}
+
+func (g *Game) CodexDataFullNotify() {
+	notify := &proto.CodexDataFullNotify{
+		TypeDataList: []*proto.CodexTypeData{
+			{
+				CodexIdList: []uint32{30211101},
+				Type:        proto.CodexType_CODEX_WEAPON,
+			},
+		},
+		Exp:   1,
+		Level: 0,
+	}
+	g.seed(cmd.CodexDataFullNotify, notify)
 }

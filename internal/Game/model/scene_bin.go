@@ -16,7 +16,7 @@ func (p *Player) GetPbPlayerSceneCompBin() *playerPb.PlayerSceneCompBin {
 		}
 		db.SceneBin.MyCurRot = &playerPb.VectorBin{
 			X: 0,
-			Y: 0,
+			Y: 307,
 			Z: 0,
 		}
 	}

@@ -61,7 +61,7 @@ func (g *Game) PacketAvatarInfo(avatarId uint32) *proto.AvatarInfo {
 	pbAvatar := &proto.AvatarInfo{
 		IsFocus:    false,
 		AvatarId:   avatar.AvatarId,
-		AvatarType: proto.AvatarType_AVATAR_TYPE_FORMAL,
+		AvatarType: 1,
 		Guid:       avatar.Guid,
 		PropMap: map[uint32]*proto.PropValue{
 			uint32(constant.PLAYER_PROP_LEVEL): {

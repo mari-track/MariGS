@@ -24,7 +24,7 @@ func (g *Game) PlayerDataNotify() {
 		NickName:          db.Nickname,
 		ServerTime:        uint64(GetServerTime()),
 		IsFirstLoginToday: true,
-		RegionId:          2,
+		RegionId:          1,
 		PropMap:           make(map[uint32]*proto.PropValue),
 	}
 
@@ -111,27 +111,38 @@ func (g *Game) SceneTeamUpdateNotify() {
 			EntityId:          entityId,
 			AvatarInfo:        nil,
 			SceneAvatarInfo:   nil,
-			AvatarAbilityInfo: nil,
+			AvatarAbilityInfo: &proto.AbilitySyncStateInfo{IsInited: false},
 			ServerBuffList:    nil,
 			WeaponGuid:        avatarDb.WeaponGuid,
 			WeaponEntityId:    entity.WeaponEntityId,
-			WeaponAbilityInfo: nil,
+			WeaponAbilityInfo: &proto.AbilitySyncStateInfo{IsInited: false},
 			AbilityControlBlock: &proto.AbilityControlBlock{AbilityEmbryoList: []*proto.AbilityEmbryo{
 				{AbilityId: 1, AbilityNameHash: 4291357363, AbilityOverrideNameHash: 1178079449},
-				{AbilityId: 2, AbilityNameHash: 1410219662, AbilityOverrideNameHash: 1178079449},
-				{AbilityId: 3, AbilityNameHash: 1474894886, AbilityOverrideNameHash: 1178079449},
-				{AbilityId: 4, AbilityNameHash: 3832178184, AbilityOverrideNameHash: 1178079449},
-				{AbilityId: 5, AbilityNameHash: 1771196189, AbilityOverrideNameHash: 1178079449},
-				{AbilityId: 6, AbilityNameHash: 2306062007, AbilityOverrideNameHash: 1178079449},
-				{AbilityId: 7, AbilityNameHash: 3105629177, AbilityOverrideNameHash: 1178079449},
-				{AbilityId: 8, AbilityNameHash: 3771526669, AbilityOverrideNameHash: 1178079449},
-				{AbilityId: 9, AbilityNameHash: 100636247, AbilityOverrideNameHash: 1178079449},
-				{AbilityId: 10, AbilityNameHash: 1564404322, AbilityOverrideNameHash: 1178079449},
-				{AbilityId: 11, AbilityNameHash: 497711942, AbilityOverrideNameHash: 1178079449},
-				{AbilityId: 12, AbilityNameHash: 3531639848, AbilityOverrideNameHash: 1178079449},
-				{AbilityId: 13, AbilityNameHash: 4255783285, AbilityOverrideNameHash: 1178079449},
-				{AbilityId: 14, AbilityNameHash: 3374327026, AbilityOverrideNameHash: 1178079449},
-				{AbilityId: 15, AbilityNameHash: 825255509, AbilityOverrideNameHash: 1178079449},
+				{AbilityId: 2, AbilityNameHash: 518324758, AbilityOverrideNameHash: 1178079449},
+				{AbilityId: 3, AbilityNameHash: 3276790745, AbilityOverrideNameHash: 1178079449},
+				{AbilityId: 4, AbilityNameHash: 3429175060, AbilityOverrideNameHash: 1178079449},
+				{AbilityId: 5, AbilityNameHash: 3429175061, AbilityOverrideNameHash: 1178079449},
+				{AbilityId: 6, AbilityNameHash: 4253958193, AbilityOverrideNameHash: 1178079449},
+				{AbilityId: 7, AbilityNameHash: 209033715, AbilityOverrideNameHash: 1178079449},
+				{AbilityId: 8, AbilityNameHash: 900298203, AbilityOverrideNameHash: 1178079449},
+				{AbilityId: 9, AbilityNameHash: 1049300416, AbilityOverrideNameHash: 1178079449},
+				{AbilityId: 10, AbilityNameHash: 872734369, AbilityOverrideNameHash: 1178079449},
+				{AbilityId: 11, AbilityNameHash: 3283199419, AbilityOverrideNameHash: 1178079449},
+				{AbilityId: 12, AbilityNameHash: 3157276645, AbilityOverrideNameHash: 1178079449},
+				{AbilityId: 13, AbilityNameHash: 664564586, AbilityOverrideNameHash: 1178079449},
+				{AbilityId: 14, AbilityNameHash: 4172444990, AbilityOverrideNameHash: 1178079449},
+				{AbilityId: 15, AbilityNameHash: 1578170661, AbilityOverrideNameHash: 1178079449},
+				{AbilityId: 16, AbilityNameHash: 918348879, AbilityOverrideNameHash: 1178079449},
+				{AbilityId: 17, AbilityNameHash: 1410219662, AbilityOverrideNameHash: 1178079449},
+				{AbilityId: 18, AbilityNameHash: 1474894886, AbilityOverrideNameHash: 1178079449},
+				{AbilityId: 19, AbilityNameHash: 3832178184, AbilityOverrideNameHash: 1178079449},
+				{AbilityId: 20, AbilityNameHash: 2306062007, AbilityOverrideNameHash: 1178079449},
+				{AbilityId: 21, AbilityNameHash: 3105629177, AbilityOverrideNameHash: 1178079449},
+				{AbilityId: 22, AbilityNameHash: 3771526669, AbilityOverrideNameHash: 1178079449},
+				{AbilityId: 23, AbilityNameHash: 3032325400, AbilityOverrideNameHash: 1178079449},
+				{AbilityId: 24, AbilityNameHash: 100636247, AbilityOverrideNameHash: 1178079449},
+				{AbilityId: 25, AbilityNameHash: 1564404322, AbilityOverrideNameHash: 1178079449},
+				{AbilityId: 26, AbilityNameHash: 3374327026, AbilityOverrideNameHash: 1178079449},
 			}},
 			IsReconnect: false,
 		}
@@ -197,7 +208,10 @@ func (g *Game) PacketPropValue(key uint32, value any) *proto.PropValue {
 /*************************************数据包处理******************************************/
 
 func (g *Game) GetPlayerBlacklistReq(payloadMsg pb.Message) {
-	g.seed(cmd.GetPlayerBlacklistRsp, nil)
+	g.seed(cmd.GetPlayerBlacklistRsp, &proto.GetPlayerBlacklistRsp{
+		Retcode:   0,
+		Blacklist: make([]*proto.FriendBrief, 0),
+	})
 }
 
 func (g *Game) GetPlayerSocialDetailReq(payloadMsg pb.Message) {
@@ -209,12 +223,15 @@ func (g *Game) GetPlayerSocialDetailReq(payloadMsg pb.Message) {
 	rsp := &proto.GetPlayerSocialDetailRsp{
 		Retcode: 0,
 		DetailData: &proto.SocialDetail{
-			Uid:               g.Uid,
-			Nickname:          db.Nickname,
-			Level:             db.Level,
-			AvatarId:          db.AvatarId,
-			Signature:         db.Signature,
-			Birthday:          nil,
+			Uid:       g.Uid,
+			Nickname:  db.Nickname,
+			Level:     db.Level,
+			AvatarId:  db.AvatarId,
+			Signature: db.Signature,
+			Birthday: &proto.Birthday{
+				Month: 0,
+				Day:   0,
+			},
 			WorldLevel:        db.WorldLevel,
 			ReservedList:      nil,
 			OnlineState:       proto.FriendOnlineState_FRIEND_ONLINE,

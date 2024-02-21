@@ -31,7 +31,7 @@ type Game struct {
 
 func (g *Game) GetNextGameObjectGuid() uint64 {
 	g.GameObjectGuidCounter++
-	return uint64(g.Uid)<<32 + g.GameObjectGuidCounter
+	return uint64(g.Uid)<<32 | g.GameObjectGuidCounter
 }
 
 func (g *Game) seed(cmdId uint16, playerMsg pb.Message) {
