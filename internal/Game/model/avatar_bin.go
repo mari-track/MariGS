@@ -4,8 +4,10 @@ import (
 	"time"
 
 	"github.com/mari-track/MariGS/pkg/constant"
+	"github.com/mari-track/MariGS/pkg/endec"
 	"github.com/mari-track/MariGS/pkg/gdconf"
 	"github.com/mari-track/MariGS/pkg/logger"
+	"github.com/mari-track/MariGS/protocol/proto"
 	playerPb "github.com/mari-track/MariGS/protocol/server_only"
 )
 
@@ -95,9 +97,9 @@ func (p *Player) AddAvatar(avatarId uint32) {
 				avatarPb.SkillMap[uint32(skillId)] = 1
 			}
 		}
-		avatarDb[avatarId] = avatarPb
 		// 更新面板
-		p.UpdateAvatarFightProp(avatarId)
+		avatarPb.FightPropMap = p.UpdateAvatarFightProp(avatarId, avatarPb.Level)
+		avatarDb[avatarId] = avatarPb
 	}
 }
 
@@ -110,31 +112,76 @@ func (p *Player) UpdateAvatarWeapon(guid uint64, avatarId uint32) {
 }
 
 // UpdateAvatarFightProp 更新角色面板
-func (p *Player) UpdateAvatarFightProp(avatarId uint32) {
-	db := p.GetPbAvatarById(avatarId)
-	if db == nil {
-		return
-	}
+func (p *Player) UpdateAvatarFightProp(avatarId, level uint32) map[uint32]float32 {
+	fightPropMap := make(map[uint32]float32, 0)
 	conf := gdconf.GetAvatarDataById(avatarId)
 	if conf == nil {
 		logger.Error("conf error, avatarId: %v", avatarId)
-		return
+		return nil
 	}
-	db.FightPropMap[constant.FIGHT_PROP_NONE] = 0.0
+	fightPropMap[constant.FIGHT_PROP_NONE] = 0.0
 	// 白字攻防血
-	db.FightPropMap[constant.FIGHT_PROP_BASE_ATTACK] = conf.GetBaseAttackByLevel(db.Level)
-	db.FightPropMap[constant.FIGHT_PROP_BASE_DEFENSE] = conf.GetBaseDefenseByLevel(db.Level)
-	db.FightPropMap[constant.FIGHT_PROP_BASE_HP] = conf.GetBaseHpByLevel(db.Level)
-	db.FightPropMap[constant.FIGHT_PROP_CUR_HP] = conf.GetBaseHpByLevel(db.Level)
+	fightPropMap[constant.FIGHT_PROP_BASE_ATTACK] = conf.GetBaseAttackByLevel(level)
+	fightPropMap[constant.FIGHT_PROP_BASE_DEFENSE] = conf.GetBaseDefenseByLevel(level)
+	fightPropMap[constant.FIGHT_PROP_BASE_HP] = conf.GetBaseHpByLevel(level)
+	fightPropMap[constant.FIGHT_PROP_CUR_HP] = conf.GetBaseHpByLevel(level)
 	// 白字+绿字攻防血
-	db.FightPropMap[constant.FIGHT_PROP_CUR_ATTACK] = conf.GetBaseAttackByLevel(db.Level)
-	db.FightPropMap[constant.FIGHT_PROP_CUR_DEFENSE] = conf.GetBaseDefenseByLevel(db.Level)
-	db.FightPropMap[constant.FIGHT_PROP_MAX_HP] = conf.GetBaseHpByLevel(db.Level)
+	fightPropMap[constant.FIGHT_PROP_CUR_ATTACK] = conf.GetBaseAttackByLevel(level)
+	fightPropMap[constant.FIGHT_PROP_CUR_DEFENSE] = conf.GetBaseDefenseByLevel(level)
+	fightPropMap[constant.FIGHT_PROP_MAX_HP] = conf.GetBaseHpByLevel(level)
 	// 双暴
-	db.FightPropMap[constant.FIGHT_PROP_CRITICAL] = conf.Critical
-	db.FightPropMap[constant.FIGHT_PROP_CRITICAL_HURT] = conf.CriticalHurt
+	fightPropMap[constant.FIGHT_PROP_CRITICAL] = conf.Critical
+	fightPropMap[constant.FIGHT_PROP_CRITICAL_HURT] = conf.CriticalHurt
 	// 元素充能
-	db.FightPropMap[constant.FIGHT_PROP_CHARGE_EFFICIENCY] = 1.0
+	fightPropMap[constant.FIGHT_PROP_CHARGE_EFFICIENCY] = 1.0
+
+	return fightPropMap
+}
+
+func PacketAvatarAbilityControlBlock(avatarId uint32, skillDepotId uint32) *proto.AbilityControlBlock {
+	acb := &proto.AbilityControlBlock{
+		AbilityEmbryoList: make([]*proto.AbilityEmbryo, 0),
+	}
+	abilityId := 0
+	// 默认ability
+	for _, abilityHashCode := range constant.DEFAULT_ABILITY_HASH_CODE {
+		abilityId++
+		ae := &proto.AbilityEmbryo{
+			AbilityId:               uint32(abilityId),
+			AbilityNameHash:         uint32(abilityHashCode),
+			AbilityOverrideNameHash: uint32(endec.Hk4eAbilityHashCode("Default")),
+		}
+		acb.AbilityEmbryoList = append(acb.AbilityEmbryoList, ae)
+	}
+	// 角色ability
+	avatarDataConfig := gdconf.GetAvatarDataById(avatarId)
+	if avatarDataConfig != nil {
+		for _, abilityHashCode := range avatarDataConfig.AbilityHashCodeList {
+			abilityId++
+			ae := &proto.AbilityEmbryo{
+				AbilityId:               uint32(abilityId),
+				AbilityNameHash:         uint32(abilityHashCode),
+				AbilityOverrideNameHash: uint32(endec.Hk4eAbilityHashCode("Default")),
+			}
+			acb.AbilityEmbryoList = append(acb.AbilityEmbryoList, ae)
+		}
+	}
+	// 技能库ability
+	skillDepot := gdconf.GetAvatarSkillDepotDataById(skillDepotId)
+	if skillDepot != nil && len(skillDepot.AbilityHashCodeList) != 0 {
+		for _, abilityHashCode := range skillDepot.AbilityHashCodeList {
+			abilityId++
+			ae := &proto.AbilityEmbryo{
+				AbilityId:               uint32(abilityId),
+				AbilityNameHash:         uint32(abilityHashCode),
+				AbilityOverrideNameHash: uint32(endec.Hk4eAbilityHashCode("Default")),
+			}
+			acb.AbilityEmbryoList = append(acb.AbilityEmbryoList, ae)
+		}
+	}
+	// TODO 队伍ability
+	// TODO 装备ability
+	return acb
 }
 
 func (p *Player) GetPbTeamList() map[uint32]*playerPb.AvatarTeamBin {

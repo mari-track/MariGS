@@ -22,3 +22,27 @@ func (p *Player) GetPbPlayerSceneCompBin() *playerPb.PlayerSceneCompBin {
 	}
 	return db.SceneBin
 }
+
+func (p *Player) GetPbMyCurPos() *playerPb.VectorBin {
+	bin := p.GetPbPlayerSceneCompBin()
+	if bin.MyCurPos == nil {
+		bin.MyCurPos = &playerPb.VectorBin{
+			X: 2747.562,
+			Y: 194.633,
+			Z: -1719.386,
+		}
+	}
+	return bin.MyCurPos
+}
+
+func (p *Player) GetPbMyCurRot() *playerPb.VectorBin {
+	bin := p.GetPbPlayerSceneCompBin()
+	if bin.MyCurRot == nil {
+		bin.MyCurRot = &playerPb.VectorBin{
+			X: 0,
+			Y: 307,
+			Z: 0,
+		}
+	}
+	return bin.MyCurPos
+}

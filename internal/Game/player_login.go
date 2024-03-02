@@ -145,6 +145,7 @@ func (g *Game) SetPlayerBornDataReq(payloadMsg pb.Message) {
 	g.PlayerBornData(req.NickName, req.AvatarId)
 	// 发送登录通知包
 	g.LoginNotify()
+	g.Player.GetPbPlayerBasicCompBin().IsProficientPlayer = true
 	g.seed(cmd.SetPlayerBornDataRsp, nil)
 }
 

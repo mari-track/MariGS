@@ -105,17 +105,23 @@ func (g *Game) SceneTeamUpdateNotify() {
 	for entityId, entity := range avatarEntity {
 		avatarDb := g.Player.GetPbAvatarById(entity.AvatarId)
 		sceneTeamAvatar := &proto.SceneTeamAvatar{
-			PlayerUid:         g.Uid,
-			AvatarGuid:        avatarDb.Guid,
-			SceneId:           db.MyCurSceneId,
-			EntityId:          entityId,
-			AvatarInfo:        nil,
-			SceneAvatarInfo:   nil,
-			AvatarAbilityInfo: &proto.AbilitySyncStateInfo{IsInited: false},
-			ServerBuffList:    nil,
+			PlayerUid:       g.Uid,
+			AvatarGuid:      avatarDb.Guid,
+			SceneId:         db.MyCurSceneId,
+			EntityId:        entityId,
+			AvatarInfo:      &proto.AvatarInfo{},
+			SceneAvatarInfo: &proto.SceneAvatarInfo{},
+			AvatarAbilityInfo: &proto.AbilitySyncStateInfo{
+				IsInited:         false,
+				DynamicValueMap:  make([]*proto.AbilityScalarValueEntry, 0),
+				AppliedAbilities: make([]*proto.AbilityAppliedAbility, 0),
+				AppliedModifiers: make([]*proto.AbilityAppliedModifier, 0),
+			},
+			ServerBuffList:    make([]*proto.ServerBuff, 0),
 			WeaponGuid:        avatarDb.WeaponGuid,
 			WeaponEntityId:    entity.WeaponEntityId,
 			WeaponAbilityInfo: &proto.AbilitySyncStateInfo{IsInited: false},
+			// AbilityControlBlock: model.PacketAvatarAbilityControlBlock(avatarDb.AvatarId, avatarDb.SkillDepotId),
 			AbilityControlBlock: &proto.AbilityControlBlock{AbilityEmbryoList: []*proto.AbilityEmbryo{
 				{AbilityId: 1, AbilityNameHash: 4291357363, AbilityOverrideNameHash: 1178079449},
 				{AbilityId: 2, AbilityNameHash: 518324758, AbilityOverrideNameHash: 1178079449},
@@ -148,6 +154,8 @@ func (g *Game) SceneTeamUpdateNotify() {
 		}
 		notify.SceneTeamAvatarList = append(notify.SceneTeamAvatarList, sceneTeamAvatar)
 	}
+
+	g.seed(cmd.SceneTeamUpdateNotify, notify)
 }
 
 /*************************************封装******************************************/

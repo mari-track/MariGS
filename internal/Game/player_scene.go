@@ -190,13 +190,20 @@ func (g *Game) SceneEntityAppearNotify() {
 		AppearType: proto.VisionType_VISION_MEET,
 		Param:      0,
 	}
+	myCurPos := g.Player.GetPbMyCurPos()
+	myCurRot := g.Player.GetPbMyCurRot()
 	// add avatar
 	avatarEntity := g.SceneEntity.GetAvatarEntity()
 	for entityId, entity := range avatarEntity {
 		avatarPb := g.Player.GetPbAvatarById(entity.AvatarId)
 		weaponPb := g.Player.GetPbWeaponByGuid(avatarPb.WeaponGuid)
 		sceneEntityInfo := &proto.SceneEntityInfo{
-			AbilityInfo: &proto.AbilitySyncStateInfo{IsInited: false},
+			AbilityInfo: &proto.AbilitySyncStateInfo{
+				IsInited:         false,
+				DynamicValueMap:  make([]*proto.AbilityScalarValueEntry, 0),
+				AppliedAbilities: make([]*proto.AbilityAppliedAbility, 0),
+				AppliedModifiers: make([]*proto.AbilityAppliedModifier, 0),
+			},
 			AiInfo: &proto.SceneEntityAiInfo{
 				IsAiOpen: true,
 				BornPos: &proto.Vector{
@@ -204,11 +211,14 @@ func (g *Game) SceneEntityAppearNotify() {
 					Y: 0,
 					Z: 0,
 				},
-				SkillCdMap:  nil,
-				ServantInfo: nil,
-				AiThreatMap: nil,
+				SkillCdMap:  make(map[uint32]uint32),
+				ServantInfo: &proto.ServantInfo{},
+				AiThreatMap: make(map[uint32]uint32),
 			},
-			AnimatorParaList: make([]*proto.AnimatorParameterValueInfoPair, 0),
+			AnimatorParaList: []*proto.AnimatorParameterValueInfoPair{{
+				NameId:       0,
+				AnimatorPara: &proto.AnimatorParameterValueInfo{},
+			}},
 			Entity: &proto.SceneEntityInfo_Avatar{Avatar: &proto.SceneAvatarInfo{
 				AvatarId:      entity.AvatarId,
 				BornTime:      uint32(time.Now().Unix()),
@@ -241,14 +251,14 @@ func (g *Game) SceneEntityAppearNotify() {
 			LifeState:     1,
 			MotionInfo: &proto.MotionInfo{
 				Pos: &proto.Vector{
-					X: 2739.658,
-					Y: 194.6,
-					Z: -1711.08,
+					X: myCurPos.X,
+					Y: myCurPos.Y,
+					Z: myCurPos.Z,
 				},
 				Rot: &proto.Vector{
-					X: 0,
-					Y: 316.9,
-					Z: 0,
+					X: myCurRot.X,
+					Y: myCurRot.Y,
+					Z: myCurRot.Z,
 				},
 				Speed: &proto.Vector{
 					X: 0,

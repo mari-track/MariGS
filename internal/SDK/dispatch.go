@@ -9,7 +9,6 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/mari-track/MariGS/pkg/endec"
 	"github.com/mari-track/MariGS/pkg/logger"
-	"github.com/mari-track/MariGS/pkg/random"
 	"github.com/mari-track/MariGS/protocol/proto"
 	pb "google.golang.org/protobuf/proto"
 )
@@ -161,7 +160,7 @@ func (s *Server) GetRegionCurr(c *gin.Context) {
 func (s *Server) GetRegionCurrDump(c *gin.Context) {
 	urlPath := c.Request.URL.RawQuery
 
-	rsps, err := http.Get("http://192.168.1.9:20001/query_cur_region?" + urlPath)
+	rsps, err := http.Get("http://10.0.0.15:20001/query_cur_region?" + urlPath)
 	if err != nil {
 		logger.Error("Request failed:", err)
 		return
@@ -183,13 +182,15 @@ func (s *Server) GetRegionCurrDump(c *gin.Context) {
 		logger.Error("", err)
 	}
 
-	if dispatch.ClientSecretKey != nil {
-		dispatch.RegionInfo.GateserverIp = "127.0.0.1"
-		dispatch.RegionInfo.GateserverPort = 20045
-		ec2b, _ := random.LoadEc2bKey(dispatch.ClientSecretKey)
-		logger.Info("%s", base64.StdEncoding.EncodeToString(dispatch.ClientSecretKey))
-		logger.Info("%s", base64.StdEncoding.EncodeToString(ec2b.XorKey()))
-	}
+	/*
+		if dispatch.ClientSecretKey != nil {
+			dispatch.RegionInfo.GateserverIp = "127.0.0.1"
+			dispatch.RegionInfo.GateserverPort = 20045
+			ec2b, _ := random.LoadEc2bKey(dispatch.ClientSecretKey)
+			logger.Info("%s", base64.StdEncoding.EncodeToString(dispatch.ClientSecretKey))
+			logger.Info("%s", base64.StdEncoding.EncodeToString(ec2b.XorKey()))
+		}
+	*/
 	rspbin, _ := pb.Marshal(dispatch)
 	dispatchb64 := base64.StdEncoding.EncodeToString(rspbin)
 	c.String(200, dispatchb64)
